@@ -1,9 +1,9 @@
 # data_bridge.py
 
 data_bridge = {
-    # Data bridge Arbitrum
-    "Arbitrum - Blast Sepolia": '',
+    # Data bridge Base
+    "Base - OP Sepolia": '',
 
-    # Data bridge Blast Sepolia
-    "Blast - Arbitrum": '',
+    # Data bridge OP Sepolia
+    "OP - Base": '',
 }
