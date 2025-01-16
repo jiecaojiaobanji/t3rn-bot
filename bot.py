@@ -23,13 +23,14 @@ def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 description = """
-test
+自动桥接机器人  https://bridge.t1rn.io/
+操你麻痹Rambeboy,偷私钥🐶
 """
 
 # 每个链的颜色和符号
 chain_symbols = {
-    'Arbitrum': '\033[34m',  # 更新为 Arb 链的颜色
-    'Blast Sepolia': '\033[91m',         
+    'Base': '\033[34m',  # 更新为 Base 链的颜色
+    'OP Sepolia': '\033[91m',         
 }
 
 # 颜色定义
@@ -39,8 +40,8 @@ menu_color = '\033[95m'  # 菜单文本颜色
 
 # 每个网络的区块浏览器URL
 explorer_urls = {
-    'Arbitrum': 'https://sepolia.arbiscan.io', 
-    'Blast Sepolia': 'https://sepolia.blastscan.io',
+    'Base': 'https://sepolia.base.org', 
+    'OP Sepolia': 'https://sepolia-optimism.etherscan.io/tx/',
     'BRN': 'https://brn.explorer.caldera.xyz/tx/'
 }
 
@@ -57,7 +58,7 @@ def check_balance(web3, my_address):
 # 创建和发送交易的函数
 def send_bridge_transaction(web3, account, my_address, data, network_name):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
-    value_in_ether = 0.1
+    value_in_ether = 1
     value_in_wei = web3.to_wei(value_in_ether, 'ether')
 
     try:
@@ -72,9 +73,9 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         print(f"估计gas错误: {e}")
         return None
 
-arbitrum_fee = web3.eth.get_block('latest')['arbitrumFeePerGas']
+    base_fee = web3.eth.get_block('latest')['baseFeePerGas']
     priority_fee = web3.to_wei(5, 'gwei')
-    max_fee = arbitrum_fee + priority_fee
+    max_fee = base_fee + priority_fee
 
     transaction = {
         'nonce': nonce,
@@ -167,8 +168,8 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
 def display_menu():
     print(f"{menu_color}选择要运行交易的链:{reset_color}")
     print(" ")
-    print(f"{chain_symbols['Arbitrum']}1. Arbitrum -> Blast Sepolia{reset_color}")
-    print(f"{chain_symbols['Blast Sepolia']}2. Blast -> Arbitrum{reset_color}")
+    print(f"{chain_symbols['Base']}1. Base -> OP Sepolia{reset_color}")
+    print(f"{chain_symbols['OP Sepolia']}2. OP -> Base{reset_color}")
     print(f"{menu_color}3. 运行所有链{reset_color}")
     print(" ")
     choice = input("输入选择 (1-3): ")
@@ -179,8 +180,8 @@ def main():
     print("\n\n")
 
     successful_txs = 0
-    current_network = 'Arbitrum'  # 默认从 Arbitrum 链开始
-    alternate_network = 'Blast Sepolia'
+    current_network = 'Base'  # 默认从 Base 链开始
+    alternate_network = 'OP Sepolia'
 
     while True:
         # 检查当前网络余额是否足够
@@ -200,10 +201,9 @@ def main():
         # 如果余额不足 0.1 ETH，切换到另一个链
         if balance < 0.1:
             print(f"{chain_symbols[current_network]}{current_network}余额不足 0.1 ETH，切换到 {alternate_network}{reset_color}")
-            current_network, alternate_network = alternate_network, current_network  # 交换链
 
         # 处理当前链的交易
-        successful_txs = process_network_transactions(current_network, ["Arbitrum - Blast Sepolia"] if current_network == 'Arbitrum' else ["Blast - Arbitrum"], networks[current_network], successful_txs)
+        successful_txs = process_network_transactions(current_network, ["Base - OP Sepolia"] if current_network == 'Base' else ["OP - Base"], networks[current_network], successful_txs)
 
         # 自动切换网络
         time.sleep(random.uniform(30, 60))  # 在每次切换网络时增加随机的延时
