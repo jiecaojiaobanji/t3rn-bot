@@ -203,7 +203,7 @@ def main():
         print(f"准备换链")
         read -n 1 -s -r -p "按任意键返回主菜单..."
       # 如果余额不足 0.1 ETH，切换到另一个链
-        if balance < 1:
+        if balance < 2:
             read -n 1 -s -r -p "按任意键返回主菜单..."
             print(f"{chain_symbols[current_network]}{current_network}余额不足 0.1 ETH，切换到 {alternate_network}{reset_color}")
             current_network, alternate_network = alternate_network, current_network  # 交换链
