@@ -183,8 +183,8 @@ def main():
     print("\n\n")
 
     successful_txs = 0
-    current_network = 'Base'  # 默认从 Base 链开始
-    alternate_network = 'OP Sepolia'
+    current_network = 'OP Sepolia'  # 默认从 Base 链开始
+    alternate_network = 'Base'
 
     while True:
         # 检查当前网络余额是否足够
@@ -199,17 +199,11 @@ def main():
         print(f"成功连接到 {current_network}")
         
         my_address = Account.from_key(private_keys[0]).address  # 使用第一个私钥的地址
-        balance = check_balance(web3, my_address)
-        print(f"{current_network}{balance}")
-        time.sleep(5)
-        read -n 1 -s -r -p "按任意键返回主菜单..."
       # 如果余额不足 0.1 ETH，切换到另一个链
         if balance < 2:
-            read -n 1 -s -r -p "按任意键返回主菜单..."
             print(f"{chain_symbols[current_network]}{current_network}余额不足 0.1 ETH，切换到 {alternate_network}{reset_color}")
             current_network, alternate_network = alternate_network, current_network  # 交换链
-            print(f"{chain_symbols[current_network]}{current_network}余额不足 0.1 ETH，切换到 {alternate_network}{reset_color}")
-            read -n 1 -s -r -p "按任意键返回主菜单..."
+
         # 处理当前链的交易
         successful_txs = process_network_transactions(current_network, ["Base - OP Sepolia"] if current_network == 'Base' else ["OP - Base"], networks[current_network], successful_txs)
 
