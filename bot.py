@@ -60,7 +60,7 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
     if network_name == 'Base' :
             value_in_ether = 1
-        else 
+    else :
             value_in_ether = 0.2
     value_in_wei = web3.to_wei(value_in_ether, 'ether')
 
