@@ -205,6 +205,7 @@ def main():
         if balance < 1:
             print(f"{chain_symbols[current_network]}{current_network}余额不足 0.1 ETH，切换到 {alternate_network}{reset_color}")
             current_network, alternate_network = alternate_network, current_network  # 交换链
+            
         # 处理当前链的交易
         successful_txs = process_network_transactions(current_network, ["Base - OP Sepolia"] if current_network == 'Base' else ["OP - Base"], networks[current_network], successful_txs)
 
