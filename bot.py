@@ -200,7 +200,8 @@ def main():
         
         my_address = Account.from_key(private_keys[0]).address  # 使用第一个私钥的地址
         balance = check_balance(web3, my_address)
-        print(f"准备换链")
+        print(f"{current_network}{balance}")
+        time.sleep(5)
         read -n 1 -s -r -p "按任意键返回主菜单..."
       # 如果余额不足 0.1 ETH，切换到另一个链
         if balance < 2:
