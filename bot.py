@@ -58,7 +58,7 @@ def check_balance(web3, my_address):
 # 创建和发送交易的函数
 def send_bridge_transaction(web3, account, my_address, data, network_name):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
-        if network_name == Base :
+        if network_name == 'Base' :
             value_in_ether = 1
         else 
             value_in_ether = 0.2
