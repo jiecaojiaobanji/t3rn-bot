@@ -158,7 +158,7 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
                 print("\n")
             
             # 随机等待 30 到 60 秒
-            wait_time = random.uniform(30, 40)
+            wait_time = random.uniform(55, 65)
             print(f"⏳ 等待 {wait_time:.2f} 秒后继续...\n")
             time.sleep(wait_time)  # 随机延迟时间
 
@@ -207,7 +207,7 @@ def main():
         successful_txs = process_network_transactions(current_network, ["Base - OP Sepolia"] if current_network == 'Base' else ["OP - Base"], networks[current_network], successful_txs)
 
         # 自动切换网络
-        time.sleep(random.uniform(30, 60))  # 在每次切换网络时增加随机的延时
+        time.sleep(random.uniform(55, 60))  # 在每次切换网络时增加随机的延时
 
 if __name__ == "__main__":
     main()
