@@ -58,7 +58,7 @@ def check_balance(web3, my_address):
 # 创建和发送交易的函数
 def send_bridge_transaction(web3, account, my_address, data, network_name):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
-    value_in_ether = 1
+    value_in_ether = 0.4
     value_in_wei = web3.to_wei(value_in_ether, 'ether')
 
     try:
@@ -74,7 +74,7 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         return None
 
     base_fee = web3.eth.get_block('latest')['baseFeePerGas']
-    priority_fee = web3.to_wei(5, 'gwei')
+    priority_fee = web3.to_wei(0, 'gwei')
     max_fee = base_fee + priority_fee
 
     transaction = {
@@ -198,8 +198,8 @@ def main():
         my_address = Account.from_key(private_keys[0]).address  # 使用第一个私钥的地址
         balance = check_balance(web3, my_address)
 
-        # 如果余额不足 0.1 ETH，切换到另一个链
-        if balance < 1:
+        # 如果余额不足 0.5 ETH，切换到另一个链
+        if balance < 0.5:
             print(f"{chain_symbols[current_network]}{current_network}余额不足 0.1 ETH，切换到 {alternate_network}{reset_color}")
     
 
