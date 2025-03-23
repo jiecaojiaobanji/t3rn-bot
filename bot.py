@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # 导入 Web3 库
 from web3 import Web3
 from eth_account import Account
@@ -15,7 +16,7 @@ from network_config import networks
 # ----------------- 新增代理函数 -----------------
 
 def format_proxy(proxy):
-    """根据代理字符串返回requests所需的代理字典"""
+    """根据代理字符串返回 requests 所需的代理字典"""
     if not proxy:
         return None
     try:
@@ -46,7 +47,31 @@ def setup_blockchain_connection(rpc_url, proxy=None):
     else:
         return Web3(Web3.HTTPProvider(rpc_url))
 
-# ----------------- 以上为新增的代理处理逻辑 -----------------
+# ----------------- 新增获取当前IP地址函数 -----------------
+
+def get_current_ip(proxy=None):
+    """
+    使用 ipify API 获取当前外网 IP 地址。
+    如果提供了代理，则通过代理获取。
+    """
+    try:
+        url = "https://api.ipify.org?format=json"
+        if proxy:
+            formatted_proxy = format_proxy(proxy)
+            if formatted_proxy:
+                session = requests.Session()
+                session.proxies = formatted_proxy
+                response = session.get(url, timeout=10)
+            else:
+                response = requests.get(url, timeout=10)
+        else:
+            response = requests.get(url, timeout=10)
+        ip_data = response.json()
+        return ip_data.get("ip", "未知IP")
+    except Exception as e:
+        return f"获取IP失败: {str(e)}"
+
+# ----------------- 以上为新增逻辑 -----------------
 
 # 文本居中函数
 def center_text(text):
@@ -66,8 +91,8 @@ description = """
 
 # 每个链的颜色和符号
 chain_symbols = {
-    'Base': '\033[34m',  # 更新为 Base 链的颜色
-    'OP Sepolia': '\033[91m',         
+    'Base': '\033[34m',  # Base 链颜色
+    'OP Sepolia': '\033[91m',
 }
 
 # 颜色定义
@@ -77,12 +102,12 @@ menu_color = '\033[95m'  # 菜单文本颜色
 
 # 每个网络的区块浏览器URL
 explorer_urls = {
-    'Base': 'https://sepolia.base.org', 
+    'Base': 'https://sepolia.base.org',
     'OP Sepolia': 'https://sepolia-optimism.etherscan.io/tx/',
     'b2n': 'https://b2n.explorer.caldera.xyz/tx/'
 }
 
-# 获取b2n余额的函数
+# 获取 b2n 余额的函数
 def get_b2n_balance(web3, my_address):
     balance = web3.eth.get_balance(my_address)
     return web3.from_wei(balance, 'ether')
@@ -93,7 +118,7 @@ def check_balance(web3, my_address):
     return web3.from_wei(balance, 'ether')
 
 # 创建和发送交易的函数
-def send_bridge_transaction(web3, account, my_address, data, network_name):
+def send_bridge_transaction(web3, account, my_address, data, network_name, proxy=None):
     nonce = web3.eth.get_transaction_count(my_address, 'pending')
     value_in_ether = 0.3
     value_in_wei = web3.to_wei(value_in_ether, 'ether')
@@ -107,7 +132,7 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         })
         gas_limit = gas_estimate + 50000  # 增加安全边际
     except Exception as e:
-        print(f"估计gas错误: {e}")
+        print(f"估计 gas 错误: {e}")
         return None
 
     base_fee = web3.eth.get_block('latest')['baseFeePerGas']
@@ -142,6 +167,10 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         # 获取区块浏览器链接
         explorer_link = f"{explorer_urls[network_name]}{web3.to_hex(tx_hash)}"
 
+        # 新增：获取并显示当前使用的IP地址
+        current_ip = get_current_ip(proxy)
+        print(f"🌐 当前使用的IP地址: {current_ip}")
+
         # 显示交易信息
         print(f"{green_color}📤 发送地址: {account.address}")
         print(f"⛽ 使用Gas: {tx_receipt['gasUsed']}")
@@ -157,7 +186,7 @@ def send_bridge_transaction(web3, account, my_address, data, network_name):
         print(f"发送交易错误: {e}")
         return None, None
 
-# 在特定网络上处理交易的函数（每个账号独立建立连接，实现隔离IP）
+# 在特定网络上处理交易的函数（每个账号独立建立连接，实现隔离 IP）
 def process_network_transactions(network_name, bridges, chain_data, successful_txs):
     # 全局连接用于检查链的可达性（无代理）
     global_web3 = Web3(Web3.HTTPProvider(chain_data['rpc_url']))
@@ -178,7 +207,7 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
                 print(f"桥接 {bridge} 数据不可用!")
                 continue
 
-            # 根据当前账号的代理信息创建专属的Web3实例
+            # 根据当前账号的代理信息创建专属的 Web3 实例
             account_proxy = proxies[i] if i < len(proxies) else ""
             account_web3 = setup_blockchain_connection(chain_data['rpc_url'], account_proxy)
             while not account_web3.is_connected():
@@ -186,7 +215,8 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
                 time.sleep(5)
                 account_web3 = setup_blockchain_connection(chain_data['rpc_url'], account_proxy)
 
-            result = send_bridge_transaction(account_web3, account, my_address, data, network_name)
+            # 将当前账号对应的代理信息传递给 send_bridge_transaction
+            result = send_bridge_transaction(account_web3, account, my_address, data, network_name, proxy=account_proxy)
             if result:
                 tx_hash, value_sent = result
                 successful_txs += 1
@@ -197,10 +227,10 @@ def process_network_transactions(network_name, bridges, chain_data, successful_t
                 else:
                     print(f"{chain_symbols[network_name]}🚀 成功交易总数: {successful_txs} | {labels[i]} | 桥接: {bridge} ✅{reset_color}\n")
 
-                print(f"{'='*150}")
+                print("=" * 150)
                 print("\n")
             
-            # 随机等待 60 到 80 秒（原来120~180秒改为较短延时，可根据需要调整）
+            # 随机等待 60 到 80 秒（可根据需要调整等待时间）
             wait_time = random.uniform(60, 80)
             print(f"⏳ 等待 {wait_time:.2f} 秒后继续...\n")
             time.sleep(wait_time)
@@ -223,7 +253,7 @@ def main():
     print("\n\n")
 
     successful_txs = 0
-    current_network = 'OP Sepolia'  # 默认从 Base 链开始
+    current_network = 'OP Sepolia'  # 默认从 OP Sepolia 开始
     alternate_network = 'Base'
 
     while True:
@@ -240,10 +270,10 @@ def main():
         my_address = Account.from_key(private_keys[0]).address  # 使用第一个私钥的地址
         balance = check_balance(web3, my_address)
 
-        # 如果余额不足 1 ETH，切换到另一个链（阈值可根据需要调整）
+        # 如果余额不足 1 ETH，则切换到另一个链（可根据实际情况调整阈值）
         if balance < 1:
             print(f"{chain_symbols[current_network]}{current_network}余额不足 1 ETH，切换到 {alternate_network}{reset_color}")
-            current_network, alternate_network = alternate_network, current_network  # 交换链
+            current_network, alternate_network = alternate_network, current_network  # 交换网络
 
         # 根据当前链处理交易（桥接数据根据网络参数区分）
         if current_network == 'Base':
@@ -253,8 +283,8 @@ def main():
 
         successful_txs = process_network_transactions(current_network, bridges, networks[current_network], successful_txs)
 
-        # 自动切换网络，并随机等待一定时间
-        time.sleep(random.uniform(30, 60))  # 切换网络前随机延时
+        # 自动切换网络前随机等待一定时间
+        time.sleep(random.uniform(30, 60))
 
 if __name__ == "__main__":
     main()
