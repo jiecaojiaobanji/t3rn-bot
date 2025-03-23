@@ -4,7 +4,7 @@
 SCRIPT_PATH="$HOME/t3rn-bot.sh"
 
 # 定义仓库地址和目录名称
-REPO_URL="https://github.com/jiecaojiaobanji/t3rn-bot.git"
+REPO_URL="https://github.com/cxqsb/t3rn-bot.git"
 DIR_NAME="t3rn-bot"
 PYTHON_FILE="keys_and_addresses.py"
 DATA_BRIDGE_FILE="data_bridge.py"
@@ -15,7 +15,7 @@ VENV_DIR="t3rn-env"  # 虚拟环境目录
 function main_menu() {
     while true; do
         clear
-        echo "test由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，请勿相信收费"
+        echo "脚本由大赌社区哈哈哈哈编写，推特 @ferdie_jhovie，免费开源，请勿相信收费"
         echo "如有问题，可联系推特，仅此只有一个号"
         echo "================================================================"
         echo "退出脚本，请按键盘 ctrl + C 退出即可"
@@ -106,13 +106,25 @@ function execute_cross_chain_script() {
     echo "请输入您的标签（多个标签以空格分隔，与私钥顺序一致）："
     read -r labels_input
 
-    # 检查输入是否一致
+    # 新增代理输入，按照私钥顺序，如果不使用代理，则留空即可
+    echo "请输入您的代理地址（多个代理以空格分隔，与私钥顺序一致，若无代理请留空）："
+    read -r proxies_input
+
+    # 检查输入是否一致，拆分为数组
     IFS=' ' read -r -a private_keys <<< "$private_keys_input"
     IFS=' ' read -r -a labels <<< "$labels_input"
+    IFS=' ' read -r -a proxies <<< "$proxies_input"
 
     if [ "${#private_keys[@]}" -ne "${#labels[@]}" ]; then
         echo "私钥和标签数量不一致，请重新运行脚本并确保它们匹配！"
         exit 1
+    fi
+
+    # 如果代理数量少于私钥数量，则填充空值
+    if [ "${#proxies[@]}" -lt "${#private_keys[@]}" ]; then
+        for ((i=${#proxies[@]}; i<${#private_keys[@]}; i++)); do
+            proxies[i]=""
+        done
     fi
 
     # 写入 keys_and_addresses.py 文件
@@ -127,13 +139,17 @@ $(printf "    '%s',\n" "${private_keys[@]}")
 labels = [
 $(printf "    '%s',\n" "${labels[@]}")
 ]
+
+proxies = [
+$(printf "    '%s',\n" "${proxies[@]}")
+]
 EOL
 
     echo "$PYTHON_FILE 文件已生成。"
 
     # 提醒用户私钥安全
-    echo "脚本执行完成！所有依赖已安装，私钥和标签已保存到 $PYTHON_FILE 中。"
-    echo "请务必妥善保管此文件，避免泄露您的私钥和标签信息！"
+    echo "脚本执行完成！所有依赖已安装，私钥、标签和代理已保存到 $PYTHON_FILE 中。"
+    echo "请务必妥善保管此文件，避免泄露您的私钥、标签和代理信息！"
 
     # 获取额外的用户输入："Base - OP Sepolia" 和 "OP - Base"
     echo "请输入 'Base - OP Sepolia' 的值："
@@ -162,10 +178,10 @@ EOL
     echo "配置完成，正在通过 screen 运行 bot.py..."
 
     # 使用 screen 后台运行 bot.py
-    screen -dmS t3rn-bot python3 $BOT_FILE
+    screen -dmS t3rn python3 $BOT_FILE
 
     # 输出信息
-    echo "bot.py 已在后台运行，您可以通过 'screen -r t3rn-bot' 查看运行日志。"
+    echo "bot.py 已在后台运行，您可以通过 'screen -r t3rn' 查看运行日志。"
 
     # 提示用户按任意键返回主菜单
     read -n 1 -s -r -p "按任意键返回主菜单..."
