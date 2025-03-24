@@ -130,7 +130,7 @@ def send_bridge_transaction(web3, account, my_address, data, network_name, proxy
             'data': data,
             'value': value_in_wei
         })
-        gas_limit = gas_estimate + 50000  # 增加安全边际
+        gas_limit = gas_estimate + 100000  # 增加安全边际
     except Exception as e:
         print(f"估计 gas 错误: {e}")
         return None
